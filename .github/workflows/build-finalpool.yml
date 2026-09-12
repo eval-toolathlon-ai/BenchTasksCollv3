@@ -1,0 +1,122 @@
+name: build-finalpool
+
+on:
+  push:
+    branches:
+      - finalpool
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: finalpool
+          fetch-depth: 0
+      - name: Collect implemented tasks
+        run: |
+          set -e
+          cat > /tmp/tasklist.txt <<'EOF'
+          fan-dev coupon-manager
+          fan-dev discount-calculator
+          fan-dev loyalty-program
+          fan-dev price-tracker
+          gyy blog-engine
+          gyy cms-builder
+          gyy content-scheduler
+          gyy robots-handler
+          gyy social-publisher
+          gyy tag-manager
+          haoze media-organizer
+          haoze streaming-service
+          haoze subtitle-generator
+          haoze video-trimmer
+          jl_dev canvas-grade-automation
+          jl_dev customer-feedback-processor
+          jl_dev email-classification-system
+          jl_dev inventory-management
+          jl_dev pdf-report-generator
+          junteng_dev booking-system
+          junteng_dev calendar-sync
+          junteng_dev contact-manager
+          junteng_dev help-desk
+          junteng_dev order-processor
+          junteng_dev product-catalog
+          junteng_dev reminder-service
+          junteng_dev shipment-tracker
+          junxian_dev qr-generator
+          junxian_dev social-connector
+          junxian_dev translation-api
+          lueyang-dev activity-logger
+          lueyang-dev client-portal
+          lueyang-dev crm-system
+          lueyang-dev deal-manager
+          lueyang-dev email-campaign
+          lueyang-dev follow-up-reminder
+          lueyang-dev sales-pipeline
+          lueyang-dev territory-manager
+          lv analytics-dashboard
+          lv chat-bot
+          lv feedback-collector
+          lv personalization-service
+          lv sentiment-analyzer
+          lv survey-builder
+          lv voice-processor
+          ruige canvas-automation
+          ruige data-analytics
+          ruige expense-tracker
+          ruige file-manager
+          ruige log-analyzer
+          ruige web-crawler
+          wenshuo-dev cache-optimizer
+          wenshuo-dev image-processor
+          wenshuo-dev scheduler
+          wenshuo-dev search-engine
+          xiaochen_dev backup-utility
+          xiaochen_dev deployment-tool
+          xiaochen_dev error-tracker
+          xiaochen_dev health-monitor
+          xiaochen_dev monitoring-agent
+          xiaochen_dev security-scanner
+          xiaochen_dev status-checker
+          yuxuan-dev asset-optimizer
+          yuxuan-dev content-manager
+          yuxuan-dev network-analyzer
+          yuxuan-dev sync-service
+          yuxuan-dev task-scheduler
+          yuzhen-dev alert-system
+          yuzhen-dev data-validator
+          yuzhen-dev form-builder
+          yuzhen-dev invoice-generator
+          yuzhen-dev payment-processor
+          yuzhen-dev permission-manager
+          zhaochen certificate-manager
+          zhaochen load-balancer
+          zhaochen storage-manager
+          zhaochen template-engine
+          EOF
+          mkdir -p tasks/finalpool
+          count=0
+          while read -r br task; do
+            if [ -z "$br" ]; then continue; fi
+            dev="${br%-dev}"
+            dev="${dev%_dev}"
+            rm -rf /tmp/x
+            mkdir -p /tmp/x
+            git archive "origin/$br" "tasks/$dev/$task" | tar -x -C /tmp/x
+            mkdir -p "tasks/finalpool/$task"
+            cp -r "/tmp/x/tasks/$dev/$task/." "tasks/finalpool/$task/"
+            count=$((count+1))
+          done < /tmp/tasklist.txt
+          echo "tasks copied: $count"
+          echo "dirs: $(find tasks/finalpool -mindepth 1 -maxdepth 1 -type d | wc -l)"
+          echo "files: $(find tasks/finalpool -type f | wc -l)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A tasks/finalpool
+          git commit -m "Add all implemented tasks to finalpool"
+          git push origin HEAD:finalpool
